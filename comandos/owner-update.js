@@ -1,3 +1,8 @@
+/* Código creado por Félix Ofc 
+por favor y no quites los créditos.
+https://github.com/Dev-FelixOfc 
+*/
+
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import chalk from 'chalk';
