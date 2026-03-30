@@ -31,6 +31,9 @@ npm start
 git pull
 npm install
 npm start
+```
+
+---
 
 🤝 COLABORADORES
 <table align="center">
