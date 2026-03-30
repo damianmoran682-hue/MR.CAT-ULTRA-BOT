@@ -42,7 +42,7 @@ Este proyecto cuenta con el apoyo de inteligencia artificial avanzada para optim
   <tr>
     <td align="center">
       <a href="https://gemini.google.com">
-        <img src="https://files.catbox.moe/nv26l7.png" width="100px;" alt="Gemini"/><br />
+        <img src="https://files.catbox.moe/zd9a5g.png" width="100px;" alt="Gemini"/><br />
         <sub><b>Gemini AI</b></sub>
       </a><br />
       🤖 <b>AI Assistant</b>
