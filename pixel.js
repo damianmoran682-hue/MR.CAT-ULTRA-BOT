@@ -12,14 +12,18 @@ export const pixelHandler = async (conn, m, conf) => {
 
         const from = m.key.remoteJid;
         const isGroup = from.endsWith('@g.us');
+        
+        // --- SOLUCIÓN ANTI-LID ---
+        // Intentamos obtener el número real. m.key.participant es donde suele venir el LID en grupos.
         const sender = isGroup ? m.key.participant : from;
+        
+        // Limpiamos el sender: quitamos @s.whatsapp.net o @lid para tener solo los números
+        const senderNumber = sender.replace(/[^0-9]/g, '');
 
-        // --- LÓGICA DE OWNER MEJORADA ---
-        // Limpiamos el ID del sender para quedarnos solo con los números
-        const senderNumber = sender.split('@')[0];
-        // Comparamos con la lista en config.js
+        // Comparamos con los números en config.owner
         const isOwner = config.owner.some(num => num.replace(/[^0-9]/g, '') === senderNumber);
 
+        // Filtro: En privado solo responde al Owner
         if (!isGroup && !isOwner) return; 
 
         const prefix = config.prefix;
@@ -41,12 +45,14 @@ export const pixelHandler = async (conn, m, conf) => {
         if (isGroup) {
             groupMetadata = await conn.groupMetadata(from);
             participants = groupMetadata.participants;
-            isAdmin = participants.filter(v => v.admin !== null).map(v => v.id).includes(sender);
+            // Aquí también limpiamos los IDs de los admins para comparar con el LID del sender
+            isAdmin = participants.filter(v => v.admin !== null).map(v => v.id.replace(/[^0-9]/g, '')).includes(senderNumber);
         }
 
-        // VALIDACIONES
+        // VALIDACIÓN DE OWNER
         if (cmd.isOwner && !isOwner) {
-            return await conn.sendMessage(from, { text: '⚠️ *Acceso denegado:* Este comando es exclusivo de mi desarrollador.' }, { quoted: m });
+            console.log(chalk.red(`[INTENTO NO AUTORIZADO]: El número ${senderNumber} intentó usar ${commandText}`));
+            return await conn.sendMessage(from, { text: '⚠️ *Acceso Denegado:* Este comando es exclusivo de mi desarrollador.' }, { quoted: m });
         }
         
         if (cmd.isGroup && !isGroup) return;
@@ -62,6 +68,7 @@ export const pixelHandler = async (conn, m, conf) => {
             isOwner,
             isAdmin,
             isGroup,
+            senderNumber, // Enviamos el número limpio por si el comando lo necesita
             participants,
             groupMetadata
         });
