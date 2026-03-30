@@ -26,12 +26,10 @@ const statusCommand = {
             // --- CÁLCULO DE CPU ---
             const cpus = os.cpus();
             const cpuModel = cpus[0].model;
-            const cpuCores = cpus.length; // vCores del server
+            const cpuCores = cpus.length; 
 
-            // --- CÁLCULO DE DISCO (Aproximado por Node) ---
-            // Nota: En Pterodactyl el disco suele ser limitado por el panel. 
-            // Mostraremos el total del sistema detectado.
-            const totalDisk = "500MB"; // Puedes ponerlo manual si Pterodactyl no deja leerlo
+            // --- CÁLCULO DE DISCO (Aproximado) ---
+            const totalDisk = "500MB"; 
 
             const textoStatus = `
 ✿︎ Nombre del bot ᗒ *${config.botName}*
@@ -50,9 +48,11 @@ const statusCommand = {
                     externalAdReply: {
                         title: 'KAZUMA - SYSTEM STATUS',
                         body: `Server: ${os.platform()} - ${os.arch()}`,
-                        thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg', // Tu foto de Kazuma
+                        // Nueva foto de Catbox
+                        thumbnailUrl: 'https://files.catbox.moe/5fli7o.jpg', 
                         mediaType: 1,
-                        renderLargerThumbnail: true
+                        // MINIATURA PEQUEÑA (Solo en este comando)
+                        renderLargerThumbnail: false 
                     }
                 }
             }, { quoted: m });
