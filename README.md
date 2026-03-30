@@ -8,13 +8,11 @@
 ---
 
 ## 🚀 SOBRE EL PROYECTO
-**Kazuma Bot** no es solo otro bot de WhatsApp; es una infraestructura completa de mensajería automatizada. Diseñado desde cero utilizando **Node.js** y la librería **Baileys**, este bot destaca por su sistema de **Sub-Bots (Sockets)** único, permitiendo que múltiples usuarios se vinculen al servidor principal de forma independiente.
+**Kazuma Bot** no es solo otro bot de WhatsApp; es una infraestructura completa de mensajería automatizada. Diseñado desde cero utilizando **Node.js** y la librería **Baileys**, este bot destaca por su sistema de **Sub-Bots (Sockets)** único, permitiendo que múltiples usuarios se vinculen al servidor principal de forma independiente y segura.
 
 ---
 
 ## 🛠️ INSTALACIÓN (Pterodactyl / VPS)
-
-Si estás instalando por primera vez:
 
 ```bash
 # Clonar el repositorio
@@ -23,3 +21,24 @@ cd kazuma-bot
 
 # Instalar dependencias
 npm install
+
+---
+
+## ACTUALIZACIÓN DEL SISTEMA 
+
+git pull
+npm install
+npm start
+
+---
+
+## Tabla de Comandos
+```markdown
+## 📖 COMANDOS PRINCIPALES
+| Comando | Descripción |
+| :--- | :--- |
+| `!menu` | Muestra el menú interactivo con diseño gótico/anime. |
+| `!code [número]` | Inicia el proceso de vinculación para ser Sub-Bot. |
+| `!bots` | Muestra la red de sockets activos y presentes en el grupo. |
+
+---
