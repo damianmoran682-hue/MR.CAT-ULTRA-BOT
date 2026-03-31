@@ -1,5 +1,5 @@
 /* KURAYAMI TEAM - PIXEL HANDLER ENGINE 
-   Identidad Blindada + Multi-Prefix + No-Prefix
+   Lógica: Identidad Dual (JID/LID) + Triple Prefix + No-Prefix
 */
 
 import chalk from 'chalk';
@@ -11,12 +11,11 @@ export const pixelHandler = async (conn, m, config) => {
         const chat = m.key.remoteJid;
         if (chat === 'status@broadcast') return;
 
-        // 1. --- IDENTIFICACIÓN DEL REMITENTE (SENDER) ---
-        // Sacamos el número limpio sin importar si es LID o JID
-        const sender = m.key.participant || m.key.remoteJid;
-        const senderNumber = sender.split('@')[0].split(':')[0]; // Extrae solo los números
+        // 1. --- IDENTIDAD EN CONTEXTO (JID O LID) ---
+        // Capturamos el remitente tal cual lo entrega Baileys en este evento
+        const sender = m.sender || m.key.participant || m.key.remoteJid;
 
-        // 2. --- EXTRACCIÓN DE TEXTO ---
+        // 2. --- EXTRACCIÓN DE BODY (TODOS LOS TIPOS) ---
         const type = Object.keys(m.message)[0];
         const body = (type === 'conversation') ? m.message.conversation : 
                      (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
@@ -26,8 +25,8 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!body) return;
 
-        // 3. --- LÓGICA DE PREFIJOS ---
-        const allPrefixes = ['#', '!', '.'];
+        // 3. --- LÓGICA DE PREFIJOS (ALL-PREFIX + NO-PREFIX) ---
+        const allPrefixes = config.allPrefixes || ['#', '!', '.'];
         const usedPrefix = allPrefixes.find(p => body.startsWith(p));
         const visualPrefix = config.prefix || '#';
 
@@ -45,42 +44,44 @@ export const pixelHandler = async (conn, m, config) => {
         const args = body.trim().split(/ +/).slice(1);
         const text = args.join(' ');
 
-        // 4. --- VALIDACIÓN DE DUEÑO (ELIMINADO EL LID PROBLEMÁTICO) ---
+        // 4. --- VALIDACIÓN DE DUEÑO (SÍ O SÍ) ---
         const owners = Array.isArray(config.owner) ? config.owner : [config.owner];
-        // Comparamos el número limpio del que envía con la lista de dueños
-        const isOwner = owners.some(num => senderNumber === num.replace(/\D/g, '')) || sender.includes(conn.user.id.split(':')[0]);
+        // Comparamos el sender directo con la lista de identidades del config
+        const isOwner = owners.includes(sender);
+        const isGroup = chat ? chat.endsWith('@g.us') : false;
 
-        // 5. --- LOGS ---
+        // 5. --- LOGGER ---
         logger(m, conn);
 
-        // 6. --- EJECUCIÓN DEL COMANDO ---
+        // 6. --- EJECUCIÓN ---
         const cmd = global.commands.get(commandName) || 
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (cmd) {
-            // Solo ignoramos si NO usó prefijo Y el comando NO es 'noPrefix'
+            // Regla No-Prefix: Si no hay prefijo, solo pasa si el comando lo permite
             if (!isCmd && !cmd.noPrefix) return; 
 
-            // Validación de Owner
+            // Validación de Poder
             if (cmd.isOwner && !isOwner) {
-                console.log(chalk.red(`[🚫] Bloqueado isOwner para: ${senderNumber}`));
-                return m.reply('❌ Comando reservado para el Desarrollador.');
+                console.log(chalk.red(`[🚫] Acceso Owner Denegado para: ${sender}`));
+                return m.reply('❌ Comando exclusivo del Desarrollador.');
             }
 
-            if (cmd.isGroup && !chat.endsWith('@g.us')) return m.reply('❌ Solo en grupos.');
+            if (cmd.isGroup && !isGroup) return m.reply('❌ Este comando solo funciona en grupos.');
 
             await cmd.run(conn, m, { 
                 body, 
-                prefix: visualPrefix, 
+                prefix: visualPrefix, // El prefijo que saldrá en los textos (${prefix})
                 command: commandName, 
                 args, 
                 text, 
                 isOwner, 
+                isGroup, 
                 config 
             });
         }
 
     } catch (err) {
-        console.error(chalk.red('[ERROR]'), err);
+        console.error(chalk.red.bold('[ERROR EN HANDLER]'), err);
     }
 };
