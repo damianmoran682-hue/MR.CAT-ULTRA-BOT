@@ -101,7 +101,7 @@ El cerebro detrás de toda la arquitectura de Kazuma y la red de sockets.
   <tr>
     <td align="center">
       <a href="https://github.com/Dev-FelixOfc">
-        <img src="https://qu.ax/mSDR.jpg" width="120px;" alt="Félix"/><br />
+        <img src="https://upload.hackstorex.com/uploads/c00efcb3670386e81a4f3808c680b954.jpg" width="120px;" alt="Félix"/><br />
         <sub><b>Félix OFC</b></sub>
       </a><br />
       👑 <b>Lead Developer</b>
