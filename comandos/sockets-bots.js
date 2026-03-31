@@ -28,7 +28,7 @@ export default {
                 folders.forEach(folder => {
                     const num = folder.replace(/\D/g, '');
                     if (num && num !== mainNumber) {
-                        listaBots += `   ➪ https://wa.me/${num} » (Sub-Bot)\n`;
+                        listaBots += `   ➪ *[https://wa.me/${num}]* » *Sub-Bot*\n`;
                     }
                 });
             }
