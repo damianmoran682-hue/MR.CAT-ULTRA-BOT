@@ -8,6 +8,7 @@ const codeCommand = {
     alias: ['subbot', 'serbot'],
     category: 'sockets',
     isOwner: false,
+    noPrefix: true,
     isAdmin: false,
     isGroup: false,
 
