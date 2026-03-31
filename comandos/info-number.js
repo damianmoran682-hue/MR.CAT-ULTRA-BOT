@@ -6,7 +6,7 @@
 export default {
     name: 'number',
     alias: ['id', 'myid', 'identidad'],
-    category: 'tools',
+    category: 'info',
     noPrefix: true, // Prioridad absoluta como pediste
 
     run: async (conn, m) => {
