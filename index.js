@@ -1,6 +1,6 @@
 /* KURAYAMI TEAM - INDEX ENGINE 
-   Desarrollado por Félix OFC para Kamuza Mister Bot
-   MOD: Validación de vinculación anti-spam
+   Desarrollado por Félix OFC para Kazuma Mister Bot
+   FIX: Vinculación dinámica sincronizada para Termux
 */
 
 import { 
@@ -84,51 +84,46 @@ async function startBot() {
 
     await global.loadCommands();
 
+    // --- NUEVA LÓGICA DE VINCULACIÓN (SIN SETTIMEOUT) ---
     if (!conn.authState.creds.registered) {
-        console.log(chalk.yellow('\n  ╔══════════════════════════════════════╗'));
-        console.log(chalk.yellow('  ║    VINCULACIÓN DEL BOT PRINCIPAL         ║'));
-        console.log(chalk.yellow('  ╚══════════════════════════════════════╝'));
-
-        let phoneNumber = "";
-        let isValid = false;
-
-        // --- BUCLE DE VALIDACIÓN ---
-        while (!isValid) {
-            let input = await question(chalk.cyan('\n  [?] Introduce tu número (ej: 1849XXXXXXX):\n  > '));
-            phoneNumber = input.replace(/[^0-9]/g, '');
-
-            if (!phoneNumber || phoneNumber.length < 10) {
-                console.log(chalk.red('  [!] ERROR: El número es demasiado corto o inválido.'));
-                console.log(chalk.gray('      Asegúrate de incluir el código de país (ej: 57, 1, 507).'));
-            } else if (phoneNumber.length > 15) {
-                console.log(chalk.red('  [!] ERROR: El número es demasiado largo.'));
-            } else {
-                // Validación de códigos específicos (ejemplo USA +1)
-                if (phoneNumber.startsWith('1') && phoneNumber.length !== 11) {
-                    console.log(chalk.yellow('  [!] AVISO: Los números de USA/Canadá deben tener 11 dígitos (1 + 10 dígitos).'));
-                    continue; 
-                }
-                isValid = true; 
-            }
-        }
-
-        console.log(chalk.blue('\n  [⏳] Solicitando código para: ') + chalk.white(phoneNumber));
-
+        // Esperamos un momento a que el socket se estabilice internamente
+        // pero lo manejamos de forma que no bloquee el flujo
+        console.log(chalk.yellow('  [!] Esperando inicialización del socket...'));
+        
         setTimeout(async () => {
+            console.log(chalk.yellow('\n  ╔══════════════════════════════════════╗'));
+            console.log(chalk.yellow('  ║    VINCULACIÓN DEL BOT PRINCIPAL         ║'));
+            console.log(chalk.yellow('  ╚══════════════════════════════════════╝'));
+
+            let phoneNumber = "";
+            let isValid = false;
+
+            while (!isValid) {
+                let input = await question(chalk.cyan('\n  [?] Introduce tu número (ej: 57350XXXXXXX):\n  > '));
+                phoneNumber = input.replace(/[^0-9]/g, '');
+
+                if (!phoneNumber || phoneNumber.length < 10) {
+                    console.log(chalk.red('  [!] ERROR: Número inválido.'));
+                } else {
+                    isValid = true; 
+                }
+            }
+
+            console.log(chalk.blue('\n  [⏳] Generando código para: ') + chalk.white(phoneNumber));
+
             try {
+                // Pedimos el código directamente ahora que el socket está listo
                 let code = await conn.requestPairingCode(phoneNumber);
                 code = code?.match(/.{1,4}/g)?.join('-') || code;
 
                 console.log('\n' + chalk.black.bgCyan('  ╔════════════════════════════════════╗  '));
                 console.log(chalk.black.bgCyan(`  ║          CODIGO: ${code}          ║  `));
                 console.log(chalk.black.bgCyan('  ╚════════════════════════════════════╝  ') + '\n');
-
             } catch (error) {
-                console.error(chalk.red('  [!] Error de Baileys:'), error.message);
-                if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
+                console.error(chalk.red('  [!] Error al generar código:'), error.message);
                 process.exit(1);
             }
-        }, 2000);
+        }, 3000); // 3 segundos es el tiempo estándar de seguridad para Baileys
     }
 
     conn.ev.on('creds.update', saveCreds);
@@ -139,17 +134,15 @@ async function startBot() {
         if (connection === 'close') {
             const isLoggedOut = lastDisconnect.error?.output?.statusCode === DisconnectReason.loggedOut;
             if (isLoggedOut) {
-                console.log(chalk.red.bold('\n  ┌─────────────────────────────────────┐'));
-                console.log(chalk.red.bold('  │       SESIÓN CERRADA / INVALIDADA        │'));
-                console.log(chalk.red.bold('  └─────────────────────────────────────┘'));
+                console.log(chalk.red.bold('\n  [!] SESIÓN CERRADA. Borrando datos...'));
                 if (fs.existsSync(sessionDir)) fs.rmSync(sessionDir, { recursive: true, force: true });
                 process.exit(0);
             } else {
-                console.log(chalk.yellow('  [!] Conexión perdida... reintentando.'));
+                console.log(chalk.yellow('  [!] Reconectando...'));
                 startBot();
             }
         } else if (connection === 'open') {
-            console.log(chalk.greenBright.bold('\n  [✨] ¡CONECTADO CON ÉXITO!'));
+            console.log(chalk.greenBright.bold('\n  [✨] ¡KAZUMA CONECTADO CON ÉXITO!'));
             console.log(chalk.gray('  ' + '─'.repeat(50)));
             await loadAllSubBots(conn);
         }
@@ -158,20 +151,6 @@ async function startBot() {
     conn.ev.on('messages.upsert', async (chatUpdate) => {
         const m = chatUpdate.messages[0];
         if (!m.message || m.key.fromMe) return;
-
-        const type = Object.keys(m.message)[0];
-        const body = (type === 'conversation') ? m.message.conversation : 
-                     (type === 'extendedTextMessage') ? m.message.extendedTextMessage.text : 
-                     (type === 'imageMessage' || type === 'videoMessage') ? m.message.imageMessage.caption : '';
-
-        if (body.startsWith(config.prefix)) {
-            global.totalCommandsUsed++;
-        } else {
-            const firstWord = body.trim().split(/ +/)[0].toLowerCase();
-            const exists = global.commands.has(firstWord) || 
-                           Array.from(global.commands.values()).some(c => c.alias && c.alias.includes(firstWord));
-            if (exists) global.totalCommandsUsed++;
-        }
 
         logger(m, conn);
         await pixelHandler(conn, m, config);
