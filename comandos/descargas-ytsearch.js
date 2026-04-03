@@ -15,29 +15,30 @@ const ytSearchCommand = {
     run: async (conn, m, { text }) => {
         const from = m.chat;
         const e1 = config.visuals.emoji;
+        const e2 = config.visuals.emoji2;
 
-        if (!text) return m.reply('《✧》Ingresa el nombre del video a buscar.');
+        if (!text) return m.reply(`${e1} Ingresa el nombre del video a buscar.`);
 
         try {
-            // 1. Solicitud a la API Stellar
+            await m.reply(`${e2} Buscando resultados para: ${text}...`);
+
             const res = await fetch(`https://api.stellarwa.xyz/search/yt?query=${encodeURIComponent(text)}&key=api-Bb1JX`);
             const json = await res.json();
 
             if (!json.status || !json.result || json.result.length === 0) {
-                return m.reply('《✧》 Sin resultados.');
+                return m.reply(`${e1} No se encontraron resultados.`);
             }
 
             const results = json.result.slice(0, 10);
             global.ytSearchDB[from] = results.map(v => v.url);
 
-            // 2. Texto de la lista
-            let txt = `➩ *RESULTADOS DE:* ${text.toUpperCase()}\n\n`;
+            let txt = `${e2} *RESULTADOS DE:* ${text.toUpperCase()}\n\n`;
             results.forEach((v, i) => {
-                txt += `*${i + 1}.* ${v.title}\n> ⴵ Duración › ${v.duration}\n> ❖ Canal › ${v.autor}\n\n`;
+                txt += `*${i + 1}.* ${v.title}\n${e1} Duración: ${v.duration}\n${e1} Canal: ${v.autor}\n\n`;
             });
-            txt += `《✧》 *Responde con un número para descargar en MP3.*`;
+            txt += `${e2} *Responde con un número para descargar en MP3.*`;
 
-            // 3. Miniatura del primer resultado como FOTO REAL
+            // Enviamos el banner del primer resultado como foto normal
             await conn.sendMessage(from, { 
                 image: { url: results[0].banner }, 
                 caption: txt 
@@ -45,7 +46,7 @@ const ytSearchCommand = {
 
         } catch (e) {
             console.error(e);
-            m.reply('《✧》 Error al conectar con el buscador.');
+            m.reply(`${e1} Error al conectar con el servidor.`);
         }
     }
 };
@@ -55,6 +56,8 @@ export const before = async (conn, m) => {
     if (!m.quoted.text || !m.quoted.text.includes('RESULTADOS DE:')) return;
 
     const from = m.chat;
+    const e1 = config.visuals.emoji;
+    const e2 = config.visuals.emoji2;
     const links = global.ytSearchDB[from];
     if (!links) return;
 
@@ -64,16 +67,13 @@ export const before = async (conn, m) => {
     const selectedLink = links[index];
 
     try {
-        await m.reply('*《✧》 Descargando audio (MP3)...*');
+        await m.reply(`${e2} Descargando audio (MP3)...`);
         
-        // Descarga usando Stellar en formato MP3
         const res = await fetch(`https://api.stellarwa.xyz/dl/ytdl?url=${encodeURIComponent(selectedLink)}&format=mp3&key=api-Bb1JX`);
         const data = await res.json();
 
-        // Extractor basado en la respuesta de Stellar
         const dlLink = data.result?.download || data.data?.dl;
-        
-        if (!dlLink) return m.reply('《✧》 Error: No se pudo generar el link de descarga.');
+        if (!dlLink) return m.reply(`${e1} No se pudo generar el link.`);
 
         const audioBuffer = await fetch(dlLink).then(r => r.buffer());
 
@@ -84,7 +84,7 @@ export const before = async (conn, m) => {
         }, { quoted: m });
 
     } catch (e) {
-        m.reply('《✧》 Error al procesar el audio.');
+        m.reply(`${e1} Error al procesar el audio.`);
     }
 };
 
