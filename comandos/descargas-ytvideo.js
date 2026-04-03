@@ -18,21 +18,20 @@ const ytVideoCommand = {
     run: async (conn, m, { text, command }) => {
         const from = m.key.remoteJid;
         const e1 = config.visuals.emoji;
-        
-        // Key de la API Stellarwa sacada de tu ejemplo
         const apiKey = "api-Bb1JX"; 
 
+        // 1. AVISO: FALTA ENLACE (Con miniatura pequeña)
         if (!text) {
             return await conn.sendMessage(from, { 
                 text: `*${e1} Ingresa un enlace de Youtube.*`,
                 contextInfo: {
                     externalAdReply: {
-                        title: config.botName,
-                        body: 'Youtube Video Downloader',
+                        title: 'KAZUMA - AVISO',
+                        body: 'Falta el enlace de video',
                         thumbnailUrl: config.visuals.img1, 
                         sourceUrl: 'https://panel.kurayamihost.ooguy.com',
                         mediaType: 1,
-                        renderLargerThumbnail: false, // Miniatura pequeña como en tu ping
+                        renderLargerThumbnail: false,
                         showAdAttribution: false
                     }
                 }
@@ -40,23 +39,45 @@ const ytVideoCommand = {
         }
 
         try {
-            // 1. Aviso de búsqueda (puedes cambiar el texto si quieres algo más específico)
-            await m.reply(`*${config.visuals.emoji2} Buscando resultados...*`);
+            // 2. AVISO: BUSCANDO (Con miniatura pequeña)
+            await conn.sendMessage(from, { 
+                text: `*${config.visuals.emoji2} Buscando resultados...*`,
+                contextInfo: {
+                    externalAdReply: {
+                        title: 'KAZUMA - STATUS',
+                        body: 'Procesando solicitud...',
+                        thumbnailUrl: config.visuals.img1,
+                        mediaType: 1,
+                        renderLargerThumbnail: false,
+                        showAdAttribution: false
+                    }
+                }
+            }, { quoted: m });
 
-            // 2. Solicitud a la API Stellarwa v2
+            // Solicitud a la API Stellarwa
             const apiUrl = `https://api.stellarwa.xyz/dl/ytmp4v2?url=${encodeURIComponent(text)}&key=${apiKey}`;
             const res = await fetch(apiUrl);
             const json = await res.json();
 
-            // Verificamos que la respuesta sea exitosa según tu JSON de ejemplo
             if (!json.status || !json.data || !json.data.dl) {
-                return m.reply(`*${e1} Error:* No se pudo obtener el enlace de descarga. Verifica el link.`);
+                // AVISO: ERROR API (Con miniatura pequeña)
+                return await conn.sendMessage(from, { 
+                    text: `*${e1} Error:* No se pudo obtener el enlace de descarga.`,
+                    contextInfo: {
+                        externalAdReply: {
+                            title: 'KAZUMA - ERROR',
+                            body: 'API Error / Link inválido',
+                            thumbnailUrl: config.visuals.img1,
+                            mediaType: 1,
+                            renderLargerThumbnail: false
+                        }
+                    }
+                }, { quoted: m });
             }
 
-            // Mapeo de los datos del JSON de Diego
             const { title, uploader, views, size, duration, dl } = json.data;
 
-            // 3. Envío del archivo de video
+            // 3. ENVÍO DEL VIDEO (Directo, SIN miniatura de contexto)
             await conn.sendMessage(from, { 
                 video: { url: dl }, 
                 caption: `*${e1} TÍTULO:* ${title}\n*👤 CANAL:* ${uploader}\n*👁️ VISTAS:* ${views}\n*⌛ DURACIÓN:* ${duration}\n*📦 PESO:* ${size}\n\n> Kazuma-Bot | Félix Ofc`,
@@ -66,7 +87,7 @@ const ytVideoCommand = {
 
         } catch (error) {
             console.error('Error en descargas-ytvideo:', error);
-            m.reply(`*${e1} Error:* Hubo un fallo al conectar con la API de Stellarwa.`);
+            m.reply(`*${e1} Error:* Hubo un fallo crítico en el sistema de descargas.`);
         }
     }
 };
