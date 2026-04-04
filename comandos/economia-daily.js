@@ -1,9 +1,9 @@
 /* KURAYAMI TEAM - ECONOMY SYSTEM (DAILY)
-   Versión mejorada y adaptada al estilo de Kazuma-Mr-Bot */
+   Adaptado para Kazuma-Mr-Bot */
 
 import fs from 'fs';
 import path from 'path';
-import { config } from '../config.js';   // Asegúrate que la ruta sea correcta según tu estructura
+import { config } from '../config.js';
 
 const dbPath = './comandos/database/economy/';
 
@@ -22,79 +22,69 @@ const dailyCommand = {
     name: 'daily',
     alias: ['diario'],
     category: 'economy',
-    desc: 'Reclama tu recompensa diaria de coins',
-    noPrefix: true,
+    desc: 'Reclama tu recompensa diaria',
+    noPrefix: false,        // Cambia a true si quieres que funcione sin prefijo (#)
 
     run: async (conn, m) => {
-        // === MEJOR DETECCIÓN DE SENDER (evita errores de split) ===
-        let sender = m.sender || 
-                     m.key?.participant || 
-                     m.key?.remoteJid || 
-                     m.participant;
+        let sender = m.sender || m.key?.participant || m.key?.remoteJid;
+        if (!sender) {
+            console.error('[ERROR] No se pudo obtener sender en daily');
+            return;
+        }
 
-        if (!sender) return console.error('[ERROR] No se pudo obtener el sender');
-
-        // Normalizamos el número (quitamos @s.whatsapp.net)
         const userNumber = sender.split('@')[0];
-
         const from = m.key.remoteJid;
 
         const e1 = config.visuals?.emoji || '🌟';
         const e2 = config.visuals?.emoji2 || '✨';
         const eCoins = config.visuals?.emoji5 || '🪙';
-        const img = config.visuals?.img1 || 'https://i.imgur.com/default.jpg'; // pon una imagen por defecto si quieres
+        const img = config.visuals?.img1 || '';
 
         const userDir = path.join(dbPath, userNumber);
         const dailyFile = path.join(userDir, 'daily.json');
 
-        // Crear carpeta si no existe
-        if (!fs.existsSync(userDir)) {
-            fs.mkdirSync(userDir, { recursive: true });
-        }
+        if (!fs.existsSync(userDir)) fs.mkdirSync(userDir, { recursive: true });
 
         let data = { lastDaily: 0, nextReward: 1000, totalCoins: 0 };
 
         if (fs.existsSync(dailyFile)) {
             try {
                 data = JSON.parse(fs.readFileSync(dailyFile, 'utf-8'));
-            } catch (err) {
-                console.error(`[ERROR] Archivo daily.json corrupto para ${userNumber}`);
-                // Si está corrupto, usamos datos por defecto
+            } catch (e) {
+                console.error(`[ERROR] JSON corrupto en daily de ${userNumber}`);
             }
         }
 
         const now = Date.now();
-        const cooldown = toMs(24, 0, 0); // 24 horas
+        const cooldown = toMs(24, 0, 0);
 
         if (now - (data.lastDaily || 0) < cooldown) {
             const remaining = (data.lastDaily || 0) + cooldown - now;
             return conn.sendMessage(from, {
-                image: { url: img },
-                caption: `*${e1} ESPERA UN POCO ${e1}*\n\n` +
-                         `⏳ Tiempo restante: *${formatDelta(remaining)}*\n\n` +
-                         `> ¡No seas ansioso, vuelve mañana!`
+                text: `*${e1} ESPERA UN MOMENTO ${e1}*\n\n` +
+                      `⏳ Tiempo restante: *${formatDelta(remaining)}*\n\n` +
+                      `> Vuelve más tarde para reclamar tu daily.`,
             }, { quoted: m });
         }
 
-        // === RECOMPENSA ===
+        // Recompensa
         const coinsGained = data.nextReward || 1000;
         data.totalCoins = (data.totalCoins || 0) + coinsGained;
         data.lastDaily = now;
-        data.nextReward = Math.floor(coinsGained * 2); // duplica la próxima
+        data.nextReward = Math.floor(coinsGained * 2);
 
-        // Guardar datos
         fs.writeFileSync(dailyFile, JSON.stringify(data, null, 2));
 
         const pushName = m.pushName || 'Usuario';
 
-        const txt = `*${e1} RECOMPENSA DIARIA ${e1}*\n\n` +
-                    `👤 *Usuario:* ${pushName}\n\n` +
-                    `\( {eCoins} *Coins obtenidos:* + \){coinsGained.toLocaleString()}\n` +
+        const txt = `*${e1} RECOMPENSA DIARIA RECIBIDA ${e1}*\n\n` +
+                    `👤 *Usuario:* ${pushName}\n` +
+                    `\( {eCoins} *Coins ganados:* + \){coinsGained.toLocaleString()}\n` +
                     `${e2} *Próxima recompensa:* ${data.nextReward.toLocaleString()} coins\n\n` +
-                    `> ¡Sigue viniendo todos los días para maximizar tus ganancias! 🔥`;
+                    `> ¡Regresa mañana para duplicar tus ganancias! 🔥`;
 
         await conn.sendMessage(from, {
-            image: { url: img },
+            image: img ? { url: img } : undefined,
             caption: txt
         }, { quoted: m });
     }
