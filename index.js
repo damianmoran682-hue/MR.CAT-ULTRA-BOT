@@ -23,6 +23,10 @@ import { config } from './config.js';
 import { logger } from './config/print.js';
 import { pixelHandler } from './pixel.js';
 
+// --- IMPORTACIÓN DIRECTA PARA EVITAR RETRASOS ---
+import { detectHandler } from './comandos/grupos-detect.js';
+import antiLinkHandler from './comandos/grupos-antilink.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -77,10 +81,12 @@ async function startBot() {
 
     await global.loadCommands();
 
-    // --- ACTIVACIÓN DINÁMICA DE DETECTORES ---
-    import('./comandos/grupos-detect.js').then(m => {
-        m.default(conn);
-    }).catch(e => console.error(chalk.red("  [❌] Error cargando detector:"), e.message));
+    // --- CARGA DE DETECTOR DE EVENTOS ---
+    try {
+        detectHandler(conn);
+    } catch (e) {
+        console.error(chalk.red("  [❌] Error en Detector:"), e.message);
+    }
 
     if (!conn.authState.creds.registered) {
         setTimeout(async () => {
@@ -113,14 +119,12 @@ async function startBot() {
         let m = chatUpdate.messages[0];
         if (!m.message || m.key.fromMe) return;
 
-        // --- SERIALIZACIÓN MANUAL ---
         m.reply = (text) => conn.sendMessage(m.key.remoteJid, { text }, { quoted: m });
 
-        // --- INTEGRACIÓN ANTI-LINK ---
-        import('./comandos/grupos-antilink.js').then(anti => {
-            anti.default(conn, m);
-        }).catch(e => console.error(chalk.red("  [❌] Error en Anti-Link:"), e.message));
+        // --- EJECUCIÓN ANTI-LINK ---
+        await antiLinkHandler(conn, m);
 
+        // --- MANEJADOR PIXEL ---
         await pixelHandler(conn, m, config);
     });
 }
