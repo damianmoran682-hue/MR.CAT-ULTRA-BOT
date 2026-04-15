@@ -6,7 +6,7 @@ const databasePath = path.join(jsonDir, 'preferencias.json');
 
 const setPrimary = {
     name: 'setprimary',
-    alias: ['principal', 'solotu'],
+    alias: ['setprimary', 'principal', 'solotu'],
     category: 'sockets',
     isOwner: false,
     noPrefix: true,
@@ -20,32 +20,6 @@ const setPrimary = {
             fs.mkdirSync(jsonDir, { recursive: true });
         }
 
-        // Lógica mejorada para detectar el bot (Mención o Respuesta)
-        const quoted = m.message?.extendedTextMessage?.contextInfo?.quotedMessage;
-        const participant = m.message?.extendedTextMessage?.contextInfo?.participant;
-        const mentionedJid = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-
-        let targetJid = mentionedJid || participant;
-
-        if (!targetJid) {
-            return await conn.sendMessage(from, { 
-                text: `*❁* \`Error de asignación\` *❁*\n\nDebes mencionar a un Bot o responder a su mensaje para nombrarlo primario.\n\n> ¡Asegúrate de elegir al socket correcto!` 
-            }, { quoted: m });
-        }
-
-        const targetNumber = targetJid.split('@')[0];
-        const mainNumber = conn.user.id.split(':')[0];
-        const sessionsPath = path.resolve('./sesiones_subbots');
-        
-        const isMain = targetNumber === mainNumber;
-        const isSub = fs.existsSync(path.join(sessionsPath, targetNumber));
-
-        if (!isMain && !isSub) {
-            return await conn.sendMessage(from, { 
-                text: `*❁* \`Bot no encontrado\` *❁*\n\nEl número \`${targetNumber}\` no parece ser un Bot activo.\n\n> ¡Solo puedes nombrar a bots vinculados!` 
-            }, { quoted: m });
-        }
-
         let db = {};
         if (fs.existsSync(databasePath)) {
             try {
@@ -53,6 +27,35 @@ const setPrimary = {
             } catch (e) {
                 db = {};
             }
+        }
+
+        // --- NUEVA RESTRICCIÓN ---
+        if (db[from]) {
+            return await conn.sendMessage(from, { 
+                text: `*❁* \`Acción Denegada\` *❁*\n\nYa existe un bot primario asignado (\`${db[from]}\`) en este grupo.\n\n> Usa \`#delprimary\` para removerlo antes de asignar uno nuevo.` 
+            }, { quoted: m });
+        }
+
+        let targetJid = m.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0] || 
+                        m.message?.extendedTextMessage?.contextInfo?.participant;
+
+        if (!targetJid) {
+            return await conn.sendMessage(from, { 
+                text: `*❁* \`Error de asignación\` *❁*\n\nDebes mencionar a un Bot o responder a su mensaje para nombrarlo primario.\n\n> ¡Elige sabiamente a tu socket!` 
+            }, { quoted: m });
+        }
+
+        const targetNumber = targetJid.split('@')[0].replace(/[^0-9]/g, '');
+        const myNumber = conn.user.id.split(':')[0].replace(/[^0-9]/g, '');
+        const sessionsPath = path.resolve('./sesiones_subbots');
+        
+        const isMain = targetNumber === myNumber;
+        const isSub = fs.existsSync(path.join(sessionsPath, targetNumber));
+
+        if (!isMain && !isSub) {
+            return await conn.sendMessage(from, { 
+                text: `*❁* \`Bot no encontrado\` *❁*\n\nEl número \`${targetNumber}\` no es un Bot activo.\n\n> ¡Solo puedes nombrar a bots vinculados!` 
+            }, { quoted: m });
         }
 
         db[from] = targetNumber;
