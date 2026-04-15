@@ -1,6 +1,8 @@
-/* KURAYAMI TEAM - PIXEL HANDLER (FIXED) */
+/* KURAYAMI TEAM - PIXEL HANDLER (FIXED & PRIMARY ENGINE) */
 
 import chalk from 'chalk';
+import fs from 'fs';
+import path from 'path';
 import { logger } from './config/print.js';
 
 export const pixelHandler = async (conn, m, config) => {
@@ -11,7 +13,6 @@ export const pixelHandler = async (conn, m, config) => {
 
         const sender = m.sender || m.key.participant || m.key.remoteJid;
         const misIdentidades = config.owner || [];
-
         const isOwner = misIdentidades.includes(sender);
         const isGroup = chat.endsWith('@g.us');
 
@@ -22,7 +23,34 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!body) return;
 
-        // Muro de Privado para usuarios no dueños
+        // --- LÓGICA DE BOT PRIMARIO ---
+        if (isGroup) {
+            const databasePath = path.resolve('./jsons/preferencias.json');
+            const sessionsPath = path.resolve('./sesiones_subbots');
+            const myNumber = conn.user.id.split(':')[0];
+
+            if (fs.existsSync(databasePath)) {
+                let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
+                
+                if (db[chat]) {
+                    const primaryNumber = db[chat];
+                    const isMainBot = primaryNumber === config.numeroPrincipal; 
+
+                    // Verificar si el bot primario asignado sigue activo
+                    const primaryExists = fs.existsSync(path.join(sessionsPath, primaryNumber)) || primaryNumber === myNumber;
+
+                    if (primaryExists) {
+                        // Si yo no soy el primario, me quedo callado
+                        if (myNumber !== primaryNumber) return;
+                    } else {
+                        // Si el primario no existe, liberamos el grupo
+                        delete db[chat];
+                        fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
+                    }
+                }
+            }
+        }
+
         if (!isGroup && !isOwner && body.toLowerCase() !== 'code') return;
 
         const allPrefixes = config.allPrefixes || ['#', '!', '.'];
@@ -42,13 +70,14 @@ export const pixelHandler = async (conn, m, config) => {
             if (!usedPrefix && !cmd.noPrefix) return;
 
             if (cmd.isOwner && !isOwner) {
-                return m.reply(`🚫 *ACCESO DENEGADO*\n\nID: \`${sender}\``);
+                return m.reply(`*❁* \`ACCESO DENEGADO\` *❁*\n\nID: \`${sender}\`\n\n> ¡Solo mi desarrollador puede usar esto!`);
             }
 
-            if (cmd.isGroup && !isGroup) return m.reply('❌ Solo para grupos.');
+            if (cmd.isGroup && !isGroup) {
+                return m.reply('*✿︎* \`Aviso\` *✿︎*\n\nEste comando solo puede ser utilizado en grupos.\n\n> ¡Inténtalo en un chat grupal!');
+            }
 
             logger(m, conn);
-            // Ejecución segura del comando
             await cmd.run(conn, m, args, usedPrefix, commandName, text);
         }
 
