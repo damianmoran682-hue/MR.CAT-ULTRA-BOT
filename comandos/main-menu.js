@@ -64,6 +64,14 @@ const menuCommand = {
 *✿︎ ${prefix}antilink on/off*
 > ❀ Activa el protector de enlaces externos.
 
+*» (❍ᴥ❍ʋ) \`DESCARGAS\` «*
+> ꕥ Comandos para descargar cosas de diferentes redes sociales y herramientas.
+
+*✿︎ ${prefix}ytv • ${prefix}playvideo*
+> ❀ Descarga videos de YouTube.
+*✿︎ ${prefix}yta • ${prefix}playaudio*
+> ❀ Descarga videos pero en formato audio de YouTube.
+
 *» (❍ᴥ❍ʋ) \`OWNER\` «*
 > ꕥ Comandos personalizados para el creador.
 
