@@ -23,6 +23,9 @@ import { config } from './config.js';
 import { logger } from './config/print.js';
 import { pixelHandler } from './pixel.js';
 
+// --- IMPORTACIÓN DEL DETECT ---
+import { detectHandler } from './comandos/grupos-detect.js';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -104,13 +107,17 @@ async function startBot() {
         }
     });
 
+    // --- EVENTO DE PARTICIPANTES (DETECT) ---
+    conn.ev.on('group-participants.update', async (update) => {
+        await detectHandler(conn, update);
+    });
+
     conn.ev.on('messages.upsert', async (chatUpdate) => {
         let m = chatUpdate.messages[0];
         if (!m.message || m.key.fromMe) return;
 
-        // --- SERIALIZACIÓN MANUAL PARA EVITAR ERRORES ---
         m.reply = (text) => conn.sendMessage(m.key.remoteJid, { text }, { quoted: m });
-        
+
         await pixelHandler(conn, m, config);
     });
 }
