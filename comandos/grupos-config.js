@@ -14,34 +14,46 @@ const configOnOff = {
 
     run: async (conn, m, args, usedPrefix, commandName) => {
         const from = m.key.remoteJid;
-        
-        // Mapeo dinámico: si usa #antilink, la función es antilink. Si usa #config, es el primer arg.
-        const feature = (commandName === 'config') ? args[0]?.toLowerCase() : 
-                        (commandName === 'antilink') ? 'antilink' : 'detect';
-        
-        const action = (commandName === 'config') ? args[1]?.toLowerCase() : args[0]?.toLowerCase();
+        let feature, action;
+
+        // Lógica de detección: ¿Se usó el comando base o un alias?
+        if (commandName === 'config') {
+            feature = args[0]?.toLowerCase();
+            action = args[1]?.toLowerCase();
+        } else {
+            // Si usó #detect on o #antilink off
+            feature = commandName; 
+            action = args[0]?.toLowerCase();
+        }
 
         const validFeatures = ['detect', 'antilink'];
 
         if (!validFeatures.includes(feature)) {
-            return m.reply(`*❁* \`Error de Función\` *❁*\n\nFunciones disponibles: \`${validFeatures.join(', ')}\`\n\n> Ejemplo: *${usedPrefix}antilink on*`);
+            return m.reply(`*❁* \`Opción Inválida\` *❁*\n\nUsa: *${usedPrefix}${commandName} [detect / antilink] [on / off]*`);
         }
 
         if (!action || !['on', 'off', 'enable', 'disable'].includes(action)) {
-            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Qué quieres hacer con *${feature}*?\n\n*✿︎ Opciones:* \`on / off\``);
+            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Quieres activar o desactivar *${feature}*?\n\n> Ejemplo: *${usedPrefix}${feature} on*`);
         }
 
         const enabled = ['on', 'enable'].includes(action);
 
+        // Asegurar que la carpeta y el archivo existan
         if (!fs.existsSync(path.resolve('./jsons'))) fs.mkdirSync(path.resolve('./jsons'));
-        let db = fs.existsSync(databasePath) ? JSON.parse(fs.readFileSync(databasePath, 'utf-8')) : {};
+        let db = {};
+        if (fs.existsSync(databasePath)) {
+            try {
+                db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
+            } catch (e) { db = {}; }
+        }
         
         if (!db[from]) db[from] = {};
         db[from][feature] = enabled;
+        
         fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
 
         await conn.sendMessage(from, { 
-            text: `*✿︎* \`Ajuste Aplicado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ha sido **${enabled ? 'ACTIVADA'}**.\n\n> ¡Kazuma ahora protegerá el grupo contra ${feature === 'antilink' ? 'enlaces externos' : 'cambios de admin'}!` 
+            text: `*✿︎* \`Ajuste Actualizado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ahora está: **${enabled ? 'ACTIVADA' : 'DESACTIVADA'}**.\n\n> Kazuma Mister Bot` 
         }, { quoted: m });
     }
 };
