@@ -1,4 +1,4 @@
-/* KAZUMA MISTER BOT - CONFIGURACIÓN DE GRUPO */
+/* KAZUMA MISTER BOT - CONFIGURACIÓN DE GRUPO (ESTRUCTURA DIVIDIDA) */
 import fs from 'fs';
 import path from 'path';
 
@@ -6,42 +6,51 @@ const databasePath = path.resolve('./jsons/grupos.json');
 
 const configOnOff = {
     name: 'config',
-    alias: ['on', 'off', 'detect', 'antilink'],
+    alias: ['detect', 'antilink'], // Solo los nombres de las funciones
     category: 'grupo',
     isAdmin: true,
     isGroup: true,
-    noPrefix: true, // Tu sello distintivo
+    noPrefix: true,
 
     run: async (conn, m, args, usedPrefix, commandName) => {
         const from = m.key.remoteJid;
-        let feature, action;
+        let feature = '';
+        let action = '';
 
-        // --- LÓGICA DE DETECCIÓN DE ARGUMENTOS ---
-        // Si el usuario usa el nombre base: #config antilink on
+        // --- DIVISIÓN DE LÓGICA POR CASO ---
+
+        // CASO 1: Usó el comando principal (#config detect on)
         if (commandName === 'config') {
             feature = args[0]?.toLowerCase();
             action = args[1]?.toLowerCase();
-        } else {
-            // Si usa un alias: #antilink on / #detect off
-            feature = commandName; 
+        } 
+        
+        // CASO 2: Usó el alias directo (#detect on)
+        else if (commandName === 'detect') {
+            feature = 'detect';
             action = args[0]?.toLowerCase();
         }
 
+        // CASO 3: Usó el alias directo (#antilink on)
+        else if (commandName === 'antilink') {
+            feature = 'antilink';
+            action = args[0]?.toLowerCase();
+        }
+
+        // --- VALIDACIÓN DE FUNCIÓN ---
         const validFeatures = ['detect', 'antilink'];
-
-        // 1. Validar que la función exista
         if (!validFeatures.includes(feature)) {
-            return m.reply(`*❁* \`Opción Inválida\` *❁*\n\nFunciones disponibles:\n*✿︎* \`detect\`\n*✿︎* \`antilink\`\n\n> Ejemplo: *${usedPrefix}${commandName === 'config' ? 'config antilink' : feature} on*`);
+            return m.reply(`*❁* \`Opción Inválida\` *❁*\n\nUsa:\n*✿︎* \`${usedPrefix}detect on/off\`\n*✿︎* \`${usedPrefix}antilink on/off\``);
         }
 
-        // 2. Validar que se haya pasado una acción (on/off)
-        if (!action || !['on', 'off', 'enable', 'disable'].includes(action)) {
-            return m.reply(`*❁* \`Estado Faltante\` *❁*\n\n¿Quieres activar o desactivar *${feature}*?\n\n*✿︎ Opciones:* \`on / off\``);
+        // --- VALIDACIÓN DE ACCIÓN (ON/OFF) ---
+        if (!action || !['on', 'off'].includes(action)) {
+            return m.reply(`*❁* \`Falta Estado\` *❁*\n\nEspecifica si quieres activar o desactivar *${feature}*.\n\n> Ejemplo: *${usedPrefix}${feature} on*`);
         }
 
-        const enabled = ['on', 'enable'].includes(action);
+        const enabled = (action === 'on');
 
-        // --- GESTIÓN DEL ARCHIVO JSON ---
+        // --- OPERACIÓN DE BASE DE DATOS ---
         try {
             if (!fs.existsSync(path.resolve('./jsons'))) {
                 fs.mkdirSync(path.resolve('./jsons'), { recursive: true });
@@ -49,8 +58,7 @@ const configOnOff = {
 
             let db = {};
             if (fs.existsSync(databasePath)) {
-                const rawData = fs.readFileSync(databasePath, 'utf-8');
-                db = rawData ? JSON.parse(rawData) : {};
+                db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
             }
             
             if (!db[from]) db[from] = {};
@@ -58,14 +66,15 @@ const configOnOff = {
             
             fs.writeFileSync(databasePath, JSON.stringify(db, null, 2));
 
-            // --- RESPUESTA VISUAL ---
+            // --- RESPUESTA ---
+            const statusText = enabled ? '✅ ACTIVADA' : '❌ DESACTIVADA';
             await conn.sendMessage(from, { 
-                text: `*✿︎* \`Ajuste Actualizado\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ahora está: **${enabled ? 'ACTIVADA' : 'DESACTIVADA'}**.\n\n> Configuración guardada para este grupo.` 
+                text: `*✿︎* \`Ajuste de Grupo\` *✿︎*\n\nLa función *${feature.toUpperCase()}* ha sido **${statusText}**.\n\n> Kazuma Mister Bot protector.` 
             }, { quoted: m });
 
         } catch (err) {
-            console.error('Error guardando config:', err);
-            m.reply('*❁* `Error Interno` *❁*\n\nNo se pudo guardar la configuración en el archivo JSON.');
+            console.error('Error en Config:', err);
+            m.reply('❌ Error al guardar en el archivo JSON.');
         }
     }
 };
