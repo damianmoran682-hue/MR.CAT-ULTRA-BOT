@@ -23,9 +23,6 @@ import { config } from './config.js';
 import { logger } from './config/print.js';
 import { pixelHandler } from './pixel.js';
 
-// --- IMPORTACIÓN DEL DETECT ---
-import { detectHandler } from './comandos/grupos-detect.js';
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -79,6 +76,9 @@ async function startBot() {
     });
 
     await global.loadCommands();
+    
+    // --- ACTIVACIÓN DEL DETECTOR DE EVENTOS (INTEGRACIÓN SILENCIOSA) ---
+    (await import('./comandos/grupos-detect.js')).default(conn);
 
     if (!conn.authState.creds.registered) {
         setTimeout(async () => {
@@ -105,11 +105,6 @@ async function startBot() {
         } else if (connection === 'open') {
             console.log(chalk.greenBright.bold('\n  [✨] ¡KAZUMA CONECTADO!'));
         }
-    });
-
-    // --- EVENTO DE PARTICIPANTES (DETECT) ---
-    conn.ev.on('group-participants.update', async (update) => {
-        await detectHandler(conn, update);
     });
 
     conn.ev.on('messages.upsert', async (chatUpdate) => {
