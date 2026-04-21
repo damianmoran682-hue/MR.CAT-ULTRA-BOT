@@ -1,23 +1,27 @@
 export default {
     name: 'tests',
-    alias: ['tests', 'pruebats'],
+    alias: ['test', 'prueba'],
     category: 'main',
-    noPrefix: true,
+    noPrefix: true, // Permite que se ejecute escribiendo solo "tests"
 
     run: async (conn, m) => {
         try {
+            const texto = 'El mensaje se ve.';
+
             await conn.sendMessage(m.chat, { 
-                text: 'El mensaje se ve.',
+                text: texto,
                 contextInfo: {
                     externalAdReply: {
-                        title: 'PRUEBA DE AUTO-LECTURA',
-                        body: 'Validando respuesta del bot',
+                        title: 'KAZUMA - TEST SYSTEM',
+                        body: 'Validación de auto-respuesta activa',
                         thumbnailUrl: 'https://upload.yotsuba.giize.com/u/a4NBj9rH.jpg',
                         mediaType: 1,
+                        showAdAttribution: true,
                         renderLargerThumbnail: false
                     }
                 }
             }, { quoted: m });
+
         } catch (e) {
             console.error("Error en comando tests:", e);
         }
