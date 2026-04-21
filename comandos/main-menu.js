@@ -76,8 +76,8 @@ const menuCommand = {
                 text: textoMenu,
                 contextInfo: {
                     externalAdReply: {
-                        title: `Kazuma`,
-                        body: 'Kazuma Bot | Developed by Félix',
+                        title: `Kazuma (${botType})`,
+                        body: 'Developed by félix',
                         thumbnailUrl: config.visuals.img1, 
                         sourceUrl: 'https://kazuma.giize.com', 
                         mediaType: 1,
