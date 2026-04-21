@@ -1,8 +1,3 @@
-/* Código creado por Félix Ofc 
-por favor y no quites los créditos.
-https://github.com/Dev-FelixOfc 
-*/
-
 import { config } from '../config.js';
 
 const pingCommand = {
@@ -15,28 +10,15 @@ const pingCommand = {
     isGroup: false,
 
     run: async (conn, m) => {
-        const from = m.key.remoteJid;
-
         try {
-            // Generamos un número aleatorio bajo para la estética
-            const fakeLatencia = (Math.random() * (19 - 1) + 1).toFixed(3);
+            const start = Date.now();
+            const { key } = await m.reply(`*${config.visuals.emoji2}* \`Probando latencia...\``);
+            const end = Date.now();
+            const latencia = end - start;
 
-            await conn.sendMessage(from, { 
-                text: `✅ *Kazuma Bot Online*\n\n🚀 *Latencia:* ${fakeLatencia} ms`,
-                contextInfo: {
-                    externalAdReply: {
-                        title: 'KAZUMA - SPEED TEST',
-                        body: 'Latencia del Servidor',
-                        thumbnailUrl: 'https://files.catbox.moe/9ssbf9.jpg', 
-                        sourceUrl: 'https://panel.kurayamihost.ooguy.com',
-                        mediaType: 1,
-                        // Renderizado pequeño (miniatura lateral)
-                        renderLargerThumbnail: false,
-                        // Quitamos la etiqueta de "Anuncio"
-                        showAdAttribution: false
-                    }
-                }
-            }, { quoted: m });
+            await conn.sendMessage(m.chat, { 
+                text: `*${config.visuals.emoji3}* \`KAZUMA PING\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4} Velocidad:* ${latencia} ms\n*${config.visuals.emoji} Estado:* Online`
+            }, { edit: key });
 
         } catch (err) {
             console.error('Error en comando ping:', err);
