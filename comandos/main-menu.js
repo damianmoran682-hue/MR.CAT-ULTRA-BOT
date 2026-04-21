@@ -1,20 +1,31 @@
 import { config } from '../config.js';
-import fs from 'fs';
-import path from 'path';
+import axios from 'axios';
+
+let menuImageBuffer = null;
+
+const fetchMenuImage = async () => {
+    try {
+        const response = await axios.get(config.visuals.img1, { responseType: 'arraybuffer' });
+        menuImageBuffer = Buffer.from(response.data, 'binary');
+    } catch (e) {
+        console.error("Error pre-cargando imagen del menú:", e);
+    }
+};
+
+fetchMenuImage();
 
 const menuCommand = {
     name: 'menu',
     alias: ['help', 'menú', 'ayuda'],
     category: 'main',
-    isOwner: false,
     noPrefix: true,
-    isAdmin: false,
-    isGroup: false,
 
     run: async (conn, m, args, usedPrefix) => {
         try {
             const prefix = usedPrefix || '#';
             const botType = config.getBotType(conn);
+
+            if (!menuImageBuffer) await fetchMenuImage();
 
             const textoMenu = `¡Hola! Soy ${config.botName} *(${botType})*.
 Aqui está mi lista de comandos
@@ -106,7 +117,7 @@ Aqui está mi lista de comandos
 > ❀ Actualiza el servidor via Git.`;
 
             await conn.sendMessage(m.chat, { 
-                image: { url: config.visuals.img1 }, 
+                image: menuImageBuffer || { url: config.visuals.img1 }, 
                 caption: textoMenu
             }, { quoted: m });
 
