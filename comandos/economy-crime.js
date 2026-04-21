@@ -9,6 +9,11 @@ const crimeCommand = {
     name: 'crime',
     alias: ['crimen', 'asaltar'],
     category: 'economy',
+    isOwner: false,
+    noPrefix: true,
+    isAdmin: false,
+    isGroup: false,
+
     run: async (conn, m) => {
         try {
             const user = m.sender.split('@')[0];
