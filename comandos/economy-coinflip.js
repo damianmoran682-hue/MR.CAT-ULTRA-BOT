@@ -30,31 +30,32 @@ const flipCommand = {
             const totalMoney = (Number(db[user].wallet) || 0) + (Number(db[user].bank) || 0);
 
             if (totalMoney < 5000) {
-                return m.reply(`*${config.visuals.emoji2}* \`POCO CAPITAL\`\n\nNecesitas al menos ¥5,000 en total (cartera + banco) para entrar a las apuestas.\n\n> ¡Vuelve cuando seas más rico!`);
+                return m.reply(`*${config.visuals.emoji2}* \`POCO CAPITAL\`\n\nNecesitas al menos ¥5,000 en total para apostar.`);
             }
 
             const bet = 1000;
-            const result = Math.random() < 0.5 ? 'cara' : 'cruz';
-            const win = choice === result;
+            const luck = Math.random(); 
+            const win = luck < 0.3; // 30% de probabilidad de ganar
+            const result = win ? choice : (choice === 'cara' ? 'cruz' : 'cara');
 
             if (win) {
                 db[user].wallet = (Number(db[user].wallet) || 0) + bet;
                 const frase = flipFrases.win[Math.floor(Math.random() * flipFrases.win.length)];
                 
                 await conn.sendMessage(m.chat, { 
-                    text: `*${config.visuals.emoji3}* \`¡GANASTE!\`\n\nSalió: *${result.toUpperCase()}*\n${frase}\n\n> *Cartera:* ¥${db[user].wallet.toLocaleString()}`
+                    text: `*${config.visuals.emoji3}* \`¡GANASTE!\` (30% Prob)\n\nSalió: *${result.toUpperCase()}*\n${frase}\n\n> *Cartera:* ¥${db[user].wallet.toLocaleString()}`
                 }, { quoted: m });
             } else {
                 if (db[user].wallet >= bet) {
                     db[user].wallet -= bet;
                 } else {
-                    db[user].bank -= bet;
+                    db[user].bank = (Number(db[user].bank) || 0) - bet;
                 }
                 
                 const frase = flipFrases.lose[Math.floor(Math.random() * flipFrases.lose.length)];
                 
                 await conn.sendMessage(m.chat, { 
-                    text: `*${config.visuals.emoji2}* \`PERDISTE\`\n\nSalió: *${result.toUpperCase()}*\n${frase}\n\n> *Balance actualizado.*`
+                    text: `*${config.visuals.emoji2}* \`PERDISTE\` (70% Prob)\n\nSalió: *${result.toUpperCase()}*\n${frase}\n\n> *Balance actualizado.*`
                 }, { quoted: m });
             }
 
