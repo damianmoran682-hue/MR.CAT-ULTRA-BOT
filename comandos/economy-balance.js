@@ -8,6 +8,11 @@ const balanceCommand = {
     name: 'balance',
     alias: ['bal', 'cartera', 'billetera', 'banco'],
     category: 'economy',
+    isOwner: false,
+    noPrefix: true,
+    isAdmin: false,
+    isGroup: false,
+
     run: async (conn, m) => {
         try {
             const user = (m.quoted ? m.quoted.sender : m.mentionedJid?.[0] || m.sender).split('@')[0];
