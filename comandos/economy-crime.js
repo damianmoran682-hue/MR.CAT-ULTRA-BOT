@@ -41,7 +41,7 @@ const crimeCommand = {
                 const randomCrime = crimeFrases[Math.floor(Math.random() * crimeFrases.length)];
                 const reward = Math.floor(Math.random() * (randomCrime.max - randomCrime.min + 1)) + randomCrime.min;
 
-                userData.coins += reward;
+                userData.wallet += reward;
                 userData.crime = { lastUsed: now };
 
                 db[user] = userData;
