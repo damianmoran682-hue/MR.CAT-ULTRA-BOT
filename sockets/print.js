@@ -1,56 +1,47 @@
 import chalk from 'chalk';
 
-/**
- * Logger personalizado para Sub-Bots - Versión Anti-Crash
- * @param {Object} m 
- * @param {import('@whiskeysockets/baileys').WASocket} conn 
- */
 export const socketLogger = (m, conn) => {
     try {
-        // 1. Validación de seguridad: si el mensaje está vacío, ignoramos
-        if (!m || !m.message || !m.key) return;
+        if (!m || !m.message || m.key?.remoteJid === 'status@broadcast') return;
 
         const from = m.key.remoteJid;
-        if (!from) return;
-
         const isGroup = from.endsWith('@g.us');
-        const name = m.pushName || 'Sub-Bot User';
-
-        // 2. CORRECCIÓN CRÍTICA: Validar sender antes del split
+        const name = m.pushName || 'Usuario';
         const sender = isGroup ? (m.key.participant || from) : from;
         const senderNumber = sender ? sender.split('@')[0] : '000000';
 
-        // 3. Detectar tipo de mensaje de forma segura
-        const type = Object.keys(m.message)[0];
-        if (!type || type === 'protocolMessage' || type === 'senderKeyDistributionMessage') return;
+        const type = Object.keys(m.message).find(t => t !== 'senderKeyDistributionMessage' && t !== 'messageContextInfo') || '';
+        if (!type || type === 'protocolMessage') return;
 
         let body = '';
+        const msg = m.message[type];
+
         if (type === 'conversation') {
             body = m.message.conversation;
         } else if (type === 'extendedTextMessage') {
-            body = m.message.extendedTextMessage?.text || '';
+            body = msg?.text || '';
         } else if (type === 'imageMessage') {
-            body = '[Imagen]';
+            body = '📷 Imagen';
         } else if (type === 'videoMessage') {
-            body = '[Video]';
+            body = '🎥 Video';
+        } else if (type === 'stickerMessage') {
+            body = '🏷️ Sticker';
         } else {
-            body = `[${type.replace('Message', '')}]`;
+            body = `📦 ${type.replace('Message', '')}`;
         }
 
-        // 4. Formatear salida con validación de grupo
-        const groupInfo = isGroup ? chalk.yellow(` (Grupo: ${from.split('@')[0]})`) : '';
+        const groupInfo = isGroup ? chalk.yellow(` [G:${from.split('@')[0]}]`) : chalk.green(` [P]`);
         const time = new Date().toLocaleTimeString();
 
         console.log(
-            chalk.magenta(`[SUB-BOT]`) + 
+            chalk.magenta(`[KAZUMA]`) + 
             chalk.blue(`[${time}]`) + 
+            groupInfo +
             chalk.cyan(` ${name} (${senderNumber}): `) + 
-            chalk.white(body.length > 50 ? body.substring(0, 50) + '...' : body) +
-            groupInfo
+            chalk.white(body.length > 40 ? body.substring(0, 40) + '...' : body)
         );
 
     } catch (e) {
-        // En caso de error, el bot sigue vivo
-        console.error(chalk.red(`  [⚠️ Sub-Bot Logger Error]: ${e.message}`));
+        console.error(chalk.red(`[Print Error]: ${e.message}`));
     }
 };
