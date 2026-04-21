@@ -8,7 +8,7 @@ const workCooldowns = new Map();
 
 const workCommand = {
     name: 'work',
-    alias: ['chamba', 'trabajar'],
+    alias: ['chamba', 'trabajar', 'w'],
     category: 'economy',
     noPrefix: true,
 
