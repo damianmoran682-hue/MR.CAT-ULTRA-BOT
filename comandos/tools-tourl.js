@@ -37,7 +37,7 @@ const tourlCommand = {
             const peso = formatBytes(media.length);
             const tipo = mime.split("/")[1].toUpperCase();
 
-            const textoExito = `*✿︎* \`Carga Exitosa\` *✿︎*\n\n*🚀 Enlace:* ${link}\n*⚖️ Peso:* ${peso}\n*📂 Tipo:* ${tipo}\n\n> Enlace generado para tu archivo multimedia.`;
+            const textoExito = `*✿︎* \`Carga Exitosa\` *✿︎*\n\n*🚀 Enlace:* upload.yotsuba.giize.com${link}\n*⚖️ Peso:* ${peso}\n*📂 Tipo:* ${tipo}\n\n> Enlace generado para tu archivo multimedia.`;
 
             await conn.sendMessage(from, { 
                 text: textoExito,
