@@ -8,6 +8,11 @@ const dailyCommand = {
     name: 'daily',
     alias: ['diario', 'recompensa'],
     category: 'economy',
+    isOwner: false,
+    noPrefix: true,
+    isAdmin: false,
+    isGroup: false,
+
     run: async (conn, m) => {
         try {
             const user = m.sender.split('@')[0];
@@ -42,7 +47,6 @@ const dailyCommand = {
             }, { quoted: m });
 
         } catch (e) {
-            console.error(e);
             m.reply(`*${config.visuals.emoji2}* Error en el proceso.`);
         }
     }
