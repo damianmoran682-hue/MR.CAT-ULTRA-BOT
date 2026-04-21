@@ -19,10 +19,11 @@ const tourlCommand = {
 
     run: async (conn, m, args, usedPrefix) => {
         const from = m.key.remoteJid;
-        const q = m.quoted || m;
-        const mime = (q.msg || q).mimetype || '';
+        
+        const q = m.quoted ? m.quoted : m;
+        const mime = (q.msg || q).mimetype || q.mediaType || '';
 
-        if (!mime) {
+        if (!mime || !/image|video|sticker|audio/.test(mime)) {
             return m.reply(`*❁* \`Sin Multimedia\` *❁*\n\nNo detecto ninguna imagen o archivo.\n\n*✿︎* Responde a una imagen, sticker o video.\n*✿︎* O envía uno con el comando *${usedPrefix}tourl*`);
         }
 
