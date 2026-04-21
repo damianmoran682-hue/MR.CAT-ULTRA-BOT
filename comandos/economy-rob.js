@@ -1,5 +1,3 @@
-Sigue fallando, este es el de Rob 
-
 import { config } from '../config.js';
 import fs from 'fs';
 import path from 'path';
