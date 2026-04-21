@@ -9,12 +9,7 @@ const crimeCommand = {
     name: 'crime',
     alias: ['crimen', 'asaltar'],
     category: 'economy',
-    isOwner: false,
-    noPrefix: true,
-    isAdmin: false,
-    isGroup: false,
-
-    run: async (conn, m, args, usedPrefix) => {
+    run: async (conn, m) => {
         try {
             const user = m.sender.split('@')[0];
             const now = Date.now();
@@ -30,48 +25,30 @@ const crimeCommand = {
 
             if (timePassed < cooldown) {
                 const remaining = cooldown - timePassed;
-                const minutes = Math.floor(remaining / (1000 * 60));
-                const seconds = Math.floor((remaining % (1000 * 60)) / 1000);
-                return m.reply(`*${config.visuals.emoji2}* \`Bajo vigilancia\` *${config.visuals.emoji2}*\n\nEspera ${minutes}m ${seconds}s para volver a cometer un crimen.`);
+                return m.reply(`*${config.visuals.emoji2}* \`BAJO VIGILANCIA\`\n\nEspera ${Math.floor(remaining/60000)}m para volver a intentarlo.`);
             }
 
-            const isSuccess = Math.random() > 0.3; 
+            const isSuccess = Math.random() > 0.3;
+            userData.crime = { lastUsed: now };
 
             if (isSuccess) {
-                const randomCrime = crimeFrases[Math.floor(Math.random() * crimeFrases.length)];
-                const reward = Math.floor(Math.random() * (randomCrime.max - randomCrime.min + 1)) + randomCrime.min;
-
+                const fr = crimeFrases[Math.floor(Math.random() * crimeFrases.length)];
+                const reward = Math.floor(Math.random() * (fr.max - fr.min + 1)) + fr.min;
                 userData.wallet += reward;
-                userData.crime = { lastUsed: now };
 
-                db[user] = userData;
-                fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-
-                const textoExito = `*${config.visuals.emoji3}* \`CRIMEN EXITOSO\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4}* ${randomCrime.text}\n\n*${config.visuals.emoji} Ganaste:* ¥${reward.toLocaleString()} Coins\n\n> Tu cartera ahora tiene: *¥${userData.wallet.toLocaleString()}*`;
-
-                await conn.sendMessage(m.chat, {
-                    text: textoExito,
-                    contextInfo: {
-                        externalAdReply: {
-                            title: 'KAZUMA - CRIME CITY',
-                            body: `Dinero en cartera: ¥${userData.wallet.toLocaleString()}`,
-                            thumbnailUrl: config.visuals.img1,
-                            mediaType: 1,
-                            showAdAttribution: false
-                        }
-                    }
+                await conn.sendMessage(m.chat, { 
+                    text: `*${config.visuals.emoji3}* \`CRIMEN EXITOSO\` *${config.visuals.emoji3}*\n\n${fr.text}\n*${config.visuals.emoji} Ganaste:* ¥${reward.toLocaleString()}\n\n> *Cartera:* ¥${userData.wallet.toLocaleString()}`
                 }, { quoted: m });
             } else {
-                userData.crime = { lastUsed: now };
-                db[user] = userData;
-                fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
-                const randomFail = failFrases[Math.floor(Math.random() * failFrases.length)];
-                m.reply(`*${config.visuals.emoji2}* \`OPERACIÓN FALLIDA\` *${config.visuals.emoji2}*\n\n${randomFail}\n\n> No lograste conseguir nada esta vez.`);
+                const fail = failFrases[Math.floor(Math.random() * failFrases.length)];
+                m.reply(`*${config.visuals.emoji2}* \`OPERACIÓN FALLIDA\`\n\n${fail}`);
             }
 
+            db[user] = userData;
+            fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
+
         } catch (e) {
-            console.error(e);
-            m.reply(`*${config.visuals.emoji2}* \`Error\` *${config.visuals.emoji2}*\nNo se pudo procesar el crimen.`);
+            m.reply(`*${config.visuals.emoji2}* Error en la misión.`);
         }
     }
 };
