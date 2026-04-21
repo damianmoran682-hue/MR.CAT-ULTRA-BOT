@@ -8,12 +8,7 @@ const dailyCommand = {
     name: 'daily',
     alias: ['diario', 'recompensa'],
     category: 'economy',
-    isOwner: false,
-    noPrefix: true,
-    isAdmin: false,
-    isGroup: false,
-
-    run: async (conn, m, args, usedPrefix) => {
+    run: async (conn, m) => {
         try {
             const user = m.sender.split('@')[0];
             const now = Date.now();
@@ -31,42 +26,24 @@ const dailyCommand = {
                 const remaining = cooldown - timePassed;
                 const hours = Math.floor(remaining / (1000 * 60 * 60));
                 const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
-                return m.reply(`*${config.visuals.emoji2}* \`Espera un poco\` *${config.visuals.emoji2}*\n\nYa has reclamado tu recompensa hoy.\n\n*${config.visuals.emoji} Vuelve en:* ${hours}h ${minutes}m`);
+                return m.reply(`*${config.visuals.emoji2}* \`TIEMPO RESTANTE\` *${config.visuals.emoji2}*\n\nYa reclamaste tu recompensa.\n*${config.visuals.emoji} Espera:* ${hours}h ${minutes}m`);
             }
 
-            if (timePassed < cooldown * 2) {
-                userData.daily.streak += 1;
-            } else {
-                userData.daily.streak = 1;
-            }
-
+            userData.daily.streak = (timePassed < cooldown * 2) ? (userData.daily.streak + 1) : 1;
             const reward = 30000 + (userData.daily.streak * 5000);
-            const nextReward = 30000 + ((userData.daily.streak + 1) * 5000);
 
             userData.wallet += reward;
             userData.daily.lastClaim = now;
-
             db[user] = userData;
             fs.writeFileSync(dbPath, JSON.stringify(db, null, 2));
 
-            const textoDaily = `*${config.visuals.emoji3}* \`RECOMPENSA DIARIA\` *${config.visuals.emoji3}*\n\n¡Has reclamado tu recompensa de hoy!\n*${config.visuals.emoji4} Ganaste:* ¥${reward.toLocaleString()} Coins\n*${config.visuals.emoji} Racha:* Día ${userData.daily.streak}\n\n> Sigue así, mañana ganarás: *¥${nextReward.toLocaleString()}*`;
-
-            await conn.sendMessage(m.chat, {
-                text: textoDaily,
-                contextInfo: {
-                    externalAdReply: {
-                        title: 'KAZUMA ECONOMY',
-                        body: `Cartera: ¥${userData.wallet.toLocaleString()} Coins`,
-                        thumbnailUrl: config.visuals.img1,
-                        mediaType: 1,
-                        showAdAttribution: false
-                    }
-                }
+            await conn.sendMessage(m.chat, { 
+                text: `*${config.visuals.emoji3}* \`RECOMPENSA DIARIA\` *${config.visuals.emoji3}*\n\n*${config.visuals.emoji4} Ganaste:* ¥${reward.toLocaleString()}\n*${config.visuals.emoji} Racha:* Día ${userData.daily.streak}\n\n> *Billetera:* ¥${userData.wallet.toLocaleString()}`
             }, { quoted: m });
 
         } catch (e) {
             console.error(e);
-            m.reply(`*${config.visuals.emoji2}* \`Error\` *${config.visuals.emoji2}*\nNo se pudo procesar tu recompensa.`);
+            m.reply(`*${config.visuals.emoji2}* Error en el proceso.`);
         }
     }
 };
