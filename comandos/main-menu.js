@@ -17,10 +17,12 @@ const menuCommand = {
             const botType = config.getBotType(conn);
 
             const textoMenu = `¡Hola! Soy ${config.botName} *(${botType})*.
-Aqui está mi lista de comandos
+
+*☞︎︎︎ Aqui está mi lista de comandos ☜︎︎︎*
+
 ┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐁𝐎𝐓 ✿︎━━━━╮
 ┃ ✐ *Owner* »
-┃ Félix
+┃ kazuma.giize.com/Dev-FelixOfc
 ┃ ✐ *Commands* »
 ┃ kazuma.giize.com/commands
 ┃ ✐ *Upload* »
