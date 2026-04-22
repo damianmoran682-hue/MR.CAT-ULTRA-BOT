@@ -5,6 +5,7 @@ import { logger } from './config/print.js';
 
 const databasePath = path.join(process.cwd(), 'jsons', 'preferencias.json');
 const sessionsPath = path.join(process.cwd(), 'sesiones_subbots');
+const mainSessionPath = path.join(process.cwd(), 'sesion_bot');
 
 export const pixelHandler = async (conn, m, config) => {
     try {
@@ -26,7 +27,6 @@ export const pixelHandler = async (conn, m, config) => {
 
         const allPrefixes = config.allPrefixes || ['#', '!', '.'];
         const foundPrefix = allPrefixes.find(p => body.startsWith(p));
-
         const usedPrefix = foundPrefix ? foundPrefix : '#';
 
         let commandName = foundPrefix 
@@ -44,9 +44,11 @@ export const pixelHandler = async (conn, m, config) => {
 
                     if (db[chat]) {
                         const primaryNumber = db[chat].replace(/[^0-9]/g, '');
+                        
                         const isSubActive = fs.existsSync(path.join(sessionsPath, primaryNumber));
+                        const isMainActive = fs.existsSync(mainSessionPath);
 
-                        if (isSubActive || primaryNumber === myJid) {
+                        if (isSubActive || (isMainActive && primaryNumber === myJid)) {
                             if (myJid !== primaryNumber) return; 
                         } else {
                             delete db[chat];
