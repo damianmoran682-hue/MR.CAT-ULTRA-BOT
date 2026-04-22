@@ -11,8 +11,22 @@ export default {
     run: async (conn, m) => {
         try {
             const sessionsPath = path.resolve('./sesiones_subbots');
-            const mainBotNumber = config.owner[0].split('@')[0].replace(/\D/g, ''); 
-            const currentNumber = conn.user.id.split(':')[0].replace(/\D/g, '');
+            const mainSessionPath = path.resolve('./sesion_bot');
+            
+            let mainBotNumber = '';
+
+            if (fs.existsSync(mainSessionPath)) {
+                const files = fs.readdirSync(mainSessionPath);
+                const credsFile = files.find(f => f === 'creds.json');
+                if (credsFile) {
+                    const creds = JSON.parse(fs.readFileSync(path.join(mainSessionPath, 'creds.json'), 'utf-8'));
+                    mainBotNumber = creds.me.id.split(':')[0];
+                }
+            }
+
+            if (!mainBotNumber) {
+                mainBotNumber = conn.user.id.split(':')[0];
+            }
 
             let totalSubs = 0;
             let subBotsList = '';
