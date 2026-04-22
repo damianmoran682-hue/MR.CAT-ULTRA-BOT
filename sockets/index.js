@@ -61,12 +61,12 @@ export const startSubBot = async (userId, mainConn = null) => {
     });
 
     sock.ev.on('messages.upsert', async (chatUpdate) => {
-        const m = chatUpdate.messages[0];
+        let m = chatUpdate.messages[0];
         if (!m.message) return;
 
         const body = (m.message.conversation || m.message.extendedTextMessage?.text || m.message.imageMessage?.caption || "").trim();
         const prefixes = config.allPrefixes || ['#', '!', '.'];
-        
+
         const hasPrefix = prefixes.some(p => body.startsWith(p));
         const isNoPrefixCmd = Array.from(global.commands.values()).some(cmd => 
             cmd.noPrefix && (body.toLowerCase() === cmd.name.toLowerCase() || (cmd.alias && cmd.alias.includes(body.toLowerCase())))
@@ -75,7 +75,17 @@ export const startSubBot = async (userId, mainConn = null) => {
         if (m.key.fromMe && !hasPrefix && !isNoPrefixCmd) return;
 
         m.chat = m.key.remoteJid;
+        m.sender = m.key.participant || m.key.remoteJid;
+
+        if (!global.db.data.chats[m.chat]) global.db.data.chats[m.chat] = { rolls: {} };
+
         m.reply = (text) => sock.sendMessage(m.chat, { text }, { quoted: m });
+
+        m.download = () => {
+            const msg = m.message.imageMessage || m.message.videoMessage || m.message.stickerMessage || m.message.audioMessage || m.message.documentMessage;
+            if (!msg) return null;
+            return downloadContentFromMessage(msg, m.message.imageMessage ? 'image' : m.message.videoMessage ? 'video' : m.message.stickerMessage ? 'sticker' : m.message.audioMessage ? 'audio' : 'document');
+        };
 
         const msgType = Object.keys(m.message)[0];
         const msgContent = m.message[msgType];
@@ -85,7 +95,16 @@ export const startSubBot = async (userId, mainConn = null) => {
             const type = Object.keys(contextInfo.quotedMessage)[0];
             const q = contextInfo.quotedMessage[type];
             m.quoted = {
-                type, msg: q, mimetype: q?.mimetype || '',
+                type, 
+                msg: q, 
+                id: contextInfo.stanzaId,
+                mimetype: q?.mimetype || '',
+                key: {
+                    remoteJid: m.chat,
+                    fromMe: contextInfo.participant === sock.user.id.split(':')[0] + '@s.whatsapp.net',
+                    id: contextInfo.stanzaId,
+                    participant: contextInfo.participant
+                },
                 message: contextInfo.quotedMessage,
                 download: () => downloadContentFromMessage(q, type.replace('Message', ''))
             };
@@ -102,8 +121,10 @@ export const startSubBot = async (userId, mainConn = null) => {
 
 export const loadAllSubBots = async (mainConn) => {
     try {
+        if (!fs.existsSync(sessionsPath)) return;
         const sessions = fs.readdirSync(sessionsPath);
         for (const num of sessions) {
+            if (num.includes('.')) continue; 
             const jid = `${num}@s.whatsapp.net`;
             await new Promise(resolve => setTimeout(resolve, 3000));
             startSubBot(jid, mainConn);
