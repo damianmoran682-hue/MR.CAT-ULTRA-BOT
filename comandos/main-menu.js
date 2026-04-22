@@ -37,7 +37,9 @@ const menuCommand = {
 *✿︎ ${prefix}help • ${prefix}menu • ${prefix}ayuda*
 > ❀ Solicita la lista de comandos.
 *✿︎ ${prefix}p • ${prefix}ping*
-> ❀ Latencia del bot.
+> ❀ Calcular la latencia del bot.
+*✿︎ ${prefix}infobot • ${prefix}status*
+> ❀ Mirar información detallada del bot.
 
 *» (❍ᴥ❍ʋ) \`ECONOMY\` «*
 > ꕥ Comandos de economía para ganar dinero y competir por ser el más rico en el bot.
