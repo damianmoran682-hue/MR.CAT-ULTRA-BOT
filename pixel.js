@@ -4,7 +4,7 @@ import path from 'path';
 import { logger } from './config/print.js';
 
 const databasePath = path.join(process.cwd(), 'jsons', 'preferencias.json');
-const sessionsPath = path.join(process.cwd(), 'sesiones_subbots');
+const prefixPath = path.join(process.cwd(), 'jsons', 'prefix.json');
 
 export const pixelHandler = async (conn, m, config) => {
     try {
@@ -24,9 +24,16 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (!body) return;
 
-        const allPrefixes = config.allPrefixes || ['#', '!', '.'];
-        const foundPrefix = allPrefixes.find(p => body.startsWith(p));
-        const usedPrefix = foundPrefix ? foundPrefix : '#';
+        let activePrefixes = config.allPrefixes || ['#', '!', '.'];
+        if (fs.existsSync(prefixPath)) {
+            const prefixData = JSON.parse(fs.readFileSync(prefixPath, 'utf-8'));
+            if (prefixData.selected) {
+                activePrefixes = [prefixData.selected];
+            }
+        }
+
+        const foundPrefix = activePrefixes.find(p => body.startsWith(p));
+        const usedPrefix = foundPrefix ? foundPrefix : '';
 
         let commandName = foundPrefix 
             ? body.slice(foundPrefix.length).trim().split(/ +/).shift().toLowerCase()
@@ -36,17 +43,12 @@ export const pixelHandler = async (conn, m, config) => {
 
         if (isGroup) {
             const comandosGestion = ['setprimary', 'delprimary', 'sockets', 'bots'];
-
             if (!comandosGestion.includes(commandName)) {
                 if (fs.existsSync(databasePath)) {
                     let db = JSON.parse(fs.readFileSync(databasePath, 'utf-8'));
-
                     if (db[chat]) {
                         const primaryNumber = db[chat].replace(/\D/g, '');
-                        
-                        if (myJid !== primaryNumber) {
-                            return; 
-                        }
+                        if (myJid !== primaryNumber) return; 
                     }
                 }
             }
@@ -59,7 +61,11 @@ export const pixelHandler = async (conn, m, config) => {
                     Array.from(global.commands.values()).find(c => c.alias && c.alias.includes(commandName));
 
         if (!cmd) return;
+        
         if (!foundPrefix && !cmd.noPrefix) return;
+        
+        if (foundPrefix && activePrefixes.length === 1 && foundPrefix !== activePrefixes[0]) return;
+
         if (!isGroup && !isOwner && commandName !== 'code') return;
 
         if (cmd.isOwner && !isOwner) {
