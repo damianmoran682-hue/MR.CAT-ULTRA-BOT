@@ -17,7 +17,7 @@ const claimCard = {
         const inputCode = args[0];
 
         if (!inputCode) {
-            return m.reply(`*${config.visuals.emoji2}* \`Falta Código\` *${config.visuals.emoji2}*\n\nPor favor, ingresa el código de tu tarjeta.\n\n> Ejemplo: *${usedPrefix}claim KZM-0000-XX*`);
+            return m.reply(`*${config.visuals.emoji2}* \`Falta Código\` *${config.visuals.emoji2}*\n\nPor favor, ingresa el código de tu tarjeta.\n\n> Ejemplo: *${usedPrefix}target KZM-0000-XX*`);
         }
 
         if (!fs.existsSync(tarjetasPath)) {
