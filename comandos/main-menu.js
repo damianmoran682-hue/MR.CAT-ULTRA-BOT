@@ -16,7 +16,7 @@ const menuCommand = {
             const prefix = usedPrefix || '#';
             const botType = config.getBotType(conn);
 
-            const textoMenu = `¡Hola! Soy ${config.botName} *(${botType})*.
+            const textoMenu = `¡Hola! Soy ${config.botName} (${botType}).
 
 *☞︎︎︎ Aqui está mi lista de comandos ☜︎︎︎*
 
