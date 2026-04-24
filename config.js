@@ -4,7 +4,7 @@ import path from 'path';
 export const config = {
     botName: 'CAT ULTRA',
     owner: [
-        '542644156919@s.whatsapp.net', 
+        '5492644156919@s.whatsapp.net', 
         '125860308893859@lid'
     ], 
     prefix: '.',
