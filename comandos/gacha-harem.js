@@ -37,7 +37,7 @@ const haremCommand = {
             let misPjs = [];
             for (let id in gachaDB) {
                 if (gachaDB[id].owner === targetId) {
-                    misPjs.push({ ...gachaDB[id], id });
+                    misPjs.push({ ...gachaDB[id], id_db: id });
                 }
             }
 
@@ -62,15 +62,15 @@ const haremCommand = {
             }
 
             const start = (page - 1) * itemsPerPage;
-            const end = start + pageSize; 
-            const currentPjs = misPjs.slice(start, start + itemsPerPage);
+            const end = start + itemsPerPage;
+            const currentPjs = misPjs.slice(start, end);
 
             let txt = `*${config.visuals.emoji3} \`HAREM DEL USUARIO\` ${config.visuals.emoji3}*\n`;
             txt += `» @${targetId} (${misPjs.length} personajes)\n`;
             txt += `*Página:* ${page} de ${totalPages}\n\n`;
 
             currentPjs.forEach((pj) => {
-                txt += `› ${pj.name} [\`${pj.id}\`]\n`;
+                txt += `› ${pj.name} [\`${pj.id_db}\`]\n`;
             });
 
             txt += `\n> ¡Sigue reclamando más personajes para que seas el que más tiene!`;
