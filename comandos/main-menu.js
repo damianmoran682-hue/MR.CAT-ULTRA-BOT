@@ -22,7 +22,7 @@ const menuCommand = {
 
 ┏━━━━✿︎ 𝐈𝐍𝐅𝐎-𝐁𝐎𝐓 ✿︎━━━━╮
 ┃ ✐ *Owner* »
-┃ 264 415-6919
+┃ DevDamian
 ┃ ✐ *Commands* »
 ┃ kazuma.giize.com/commands
 ┃ ✐ *Upload* »
