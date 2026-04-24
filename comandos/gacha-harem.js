@@ -58,7 +58,7 @@ const haremCommand = {
             const totalPages = Math.ceil(misPjs.length / itemsPerPage);
 
             if (page > totalPages || page <= 0) {
-                return m.reply(`*${config.visuals.emoji2}* \`PÁGINA NO ENCONTRADA\`\n\nEl usuario solo tiene **${totalPages}** página(s) en su harem.`);
+                return m.reply(`*${config.visuals.emoji2}* \`PÁGINA NO ENCONTRADA\`\n\nEl usuario solo tiene *${totalPages}* página(s) en su harem.`);
             }
 
             const start = (page - 1) * itemsPerPage;
@@ -70,7 +70,7 @@ const haremCommand = {
             txt += `*Página:* ${page} de ${totalPages}\n\n`;
 
             currentPjs.forEach((pj) => {
-                txt += `› ${pj.name} [\`${pj.id_db}\`]\n`;
+                txt += `› ${pj.name} \`[${pj.id_db}]\`\n`;
             });
 
             txt += `\n> ¡Sigue reclamando más personajes para que seas el que más tiene!`;
