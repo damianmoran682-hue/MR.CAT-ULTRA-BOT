@@ -2,12 +2,12 @@ import fs from 'fs';
 import path from 'path';
 
 export const config = {
-    botName: 'Kazuma',
+    botName: 'CAT ULTRA',
     owner: [
-        '573508941325@s.whatsapp.net', 
+        '542644156919@s.whatsapp.net', 
         '125860308893859@lid'
     ], 
-    prefix: '#',
+    prefix: '.',
     allPrefixes: ['#', '!', '.'],
 
     getBotType: (conn) => {
@@ -19,11 +19,11 @@ export const config = {
     visuals: {
         line: '━',
         color: 'magenta',
-        emoji: '✰',
-        emoji2: '❁',
-        emoji3: '✿',
-        emoji4: '❀',
-        img1: 'https://files.catbox.moe/9ssbf9.jpg'
+        emoji: '🧸',
+        emoji2: '🥪`,
+        emoji3: '🌐',
+        emoji4: '⭐',
+        img1: 'https://upload.yotsuba.giize.com/u/_2GqN3eD.jpeg'
     },
 
     apiNex: 'NEX-0868C926ADF94B19A51E18C4'
