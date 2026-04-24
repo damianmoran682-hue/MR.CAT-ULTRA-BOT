@@ -20,7 +20,7 @@ export const config = {
         line: '━',
         color: 'magenta',
         emoji: '🧸',
-        emoji2: '🥪`,
+        emoji2: '🥪',
         emoji3: '🌐',
         emoji4: '⭐',
         img1: 'https://upload.yotsuba.giize.com/u/_2GqN3eD.jpeg'
